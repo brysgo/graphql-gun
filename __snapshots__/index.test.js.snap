@@ -1,0 +1,22 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`graphqlGun can get things down the gun chain 1`] = `
+Object {
+  "foo": Object {
+    "bar": Object {
+      "hello": "baz",
+    },
+  },
+}
+`;
+
+exports[`graphqlGun lets you grab the chain at any point 1`] = `
+Object {
+  "foo": Object {
+    "bar": Object {
+      "_chain": undefined,
+      "hello": "pop",
+    },
+  },
+}
+`;

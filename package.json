@@ -1,0 +1,21 @@
+{
+  "name": "graphql-gun",
+  "version": "0.0.1",
+  "description": "A graphql API for the gun p2p graph database",
+  "main": "index.js",
+  "repository": "",
+  "author": "Bryan Goldstein <brysgo@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest --watch"
+  },
+  "dependencies": {
+    "graphql-anywhere": "^3.0.1",
+    "traverse-async": "^0.1.6"
+  },
+  "devDependencies": {
+    "graphql-tag": "^1.3.2",
+    "gun": "^0.6.7",
+    "jest": "^19.0.2"
+  }
+}
