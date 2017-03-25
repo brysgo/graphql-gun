@@ -1,22 +1,8 @@
+const Gun = require('gun/gun');
 const graphql = require('graphql-anywhere').default;
-const { traverse } = require('traverse-async');
-
-const whenTraverse = function(tree) {
-  return new Promise(function(resolve) {
-    traverse(tree, function(node, next){
-      if (this.isRoot) return next();
-      const { parent, key } = this;
-      Promise.resolve(node).then((res) => {
-        parent[key] = res;
-        next();
-      })
-    }, (result) => {
-      resolve(result);
-    });
-  })
-}
 
 module.exports = function(query, gun) {
+  gun = gun || Gun();
   const resolver = (
     fieldName,
     chain,
@@ -25,20 +11,37 @@ module.exports = function(query, gun) {
     info
   ) => {
     let key = info.resultKey;
+    
     if (info.isLeaf) {
       if (key === '_chain') {
         return Promise.resolve(chain);
       } else {
         return new Promise((resolve) => {
           chain.val((val) => {
-            resolve(val);
+            if (val[key]) {
+              resolve(val[key]);
+            } else {
+              resolve(val);
+            }
           });
         })
       }
+    } else if (args && args.type === 'Set') {
+      return new Promise((resolve) => {
+        const array = [];
+        gun.get(key).val(function(data, key, at){
+          var ref = this; // also `at.gun`
+          Gun.obj.map(data, function(val, field){ // or a for in
+            if (field === '_') return;
+            array.push(ref.get(field))
+          });
+          resolve(array);
+        });
+      });
     } else {
-      return chain.get(key);
+      return Promise.resolve(chain.get(key));
     }
   };
   
-  return whenTraverse(graphql(resolver, query, gun));
+  return graphql(resolver, query, gun);
 }

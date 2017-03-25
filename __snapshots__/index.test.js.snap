@@ -1,10 +1,10 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`graphqlGun can get things down the gun chain 1`] = `
+exports[`graphqlGun can do the basics 1`] = `
 Object {
   "foo": Object {
     "bar": Object {
-      "hello": "baz",
+      "baz": "baz",
     },
   },
 }
