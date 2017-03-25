@@ -65,4 +65,27 @@ describe("graphqlGun", () => {
     expect(results).toEqual({ things: [ {stuff: 'b'}, {stuff: 'c'} ] });
     
   });
+  
+  it('lets you subscribe to updates', async () => {
+    const thing1 = gun.get('thing1');
+    const thing2 = gun.get('thing2');
+    thing1.put({stuff: 'b', more: 'ok'});
+    thing2.put({stuff: 'c', more: 'ok'});
+    gun.get('things').set(thing1);
+    gun.get('things').set(thing2);
+    
+    let iter = graphqlGun(gql`{
+      things(type: Set) {
+        stuff @live
+      }
+    }`, gun)[Symbol.iterator]();
+    
+    await iter.next()
+    
+    expect(iter.value).toEqual({ things: [ {stuff: 'b'}, {stuff: 'c'} ] });
+    
+    gun.get('thing1').put({stuff: 'changed'});
+    
+    expect((await iter.next()).value).toEqual({ things: [ {stuff: 'changed'}, {stuff: 'c'} ] });
+  })
 });

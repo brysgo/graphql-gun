@@ -38,23 +38,25 @@ function executeSelectionSet(selectionSet, rootValue, execContext) {
             });
         }
         else {
-            var fragment = void 0;
+            var fragment_1;
             if (storeUtils_1.isInlineFragment(selection)) {
-                fragment = selection;
+                fragment_1 = selection;
             }
             else {
-                fragment = fragmentMap[selection.name.value];
-                if (!fragment) {
+                fragment_1 = fragmentMap[selection.name.value];
+                if (!fragment_1) {
                     throw new Error("No fragment named " + selection.name.value);
                 }
             }
-            var typeCondition = fragment.typeCondition.name.value;
-            if (execContext.fragmentMatcher(rootValue, typeCondition, contextValue)) {
-                var fragmentResultOrPromise = executeSelectionSet(fragment.selectionSet, rootValue, execContext);
-                return promiseOrImmediate(fragmentResultOrPromise, function (fragmentResult) {
-                    merge(result, fragmentResult);
-                });
-            }
+            var typeCondition = fragment_1.typeCondition.name.value;
+            return promiseOrImmediate(execContext.fragmentMatcher(rootValue, typeCondition, contextValue), function (fragmentMatcherResult) {
+                if (fragmentMatcherResult) {
+                    var fragmentResultOrPromise = executeSelectionSet(fragment_1.selectionSet, rootValue, execContext);
+                    return promiseOrImmediate(fragmentResultOrPromise, function (fragmentResult) {
+                        merge(result, fragmentResult);
+                    });
+                }
+            });
         }
     })), function () {
         if (execContext.resultMapper) {
@@ -70,6 +72,7 @@ function executeField(field, rootValue, execContext) {
     var info = {
         isLeaf: !field.selectionSet,
         resultKey: storeUtils_1.resultKeyNameFromField(field),
+        fieldNode: field
     };
     var resultOrPromise = resolver(fieldName, rootValue, args, contextValue, info);
     return promiseOrImmediate(resultOrPromise, function (result) {

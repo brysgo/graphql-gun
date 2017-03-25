@@ -2,7 +2,7 @@
   "name": "graphql-anywhere",
   "version": "3.0.1",
   "description": "Run GraphQL queries with no schema and just one resolver",
-  "main": "./src/index.js",
+  "main": "./lib/src/index.js",
   "scripts": {
   },
   "repository": {

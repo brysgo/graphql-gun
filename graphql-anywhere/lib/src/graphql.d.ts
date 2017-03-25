@@ -1,4 +1,4 @@
-import { DocumentNode } from 'graphql';
+import { DocumentNode, FieldNode } from 'graphql';
 import { FragmentMap } from './getFromAST';
 export declare type Resolver = (fieldName: string, rootValue: any, args: any, context: any, info: ExecInfo) => any;
 export declare type VariableMap = {
@@ -7,7 +7,7 @@ export declare type VariableMap = {
 export declare type ResultMapper = (values: {
     [fieldName: string]: any;
 }, rootValue: any) => any;
-export declare type FragmentMatcher = (rootValue: any, typeCondition: string, context: any) => boolean;
+export declare type FragmentMatcher = (rootValue: any, typeCondition: string, context: any) => boolean | Promise<boolean>;
 export declare type ExecContext = {
     fragmentMap: FragmentMap;
     contextValue: any;
@@ -19,6 +19,7 @@ export declare type ExecContext = {
 export declare type ExecInfo = {
     isLeaf: boolean;
     resultKey: string;
+    fieldNode: FieldNode;
 };
 export declare type ExecOptions = {
     resultMapper?: ResultMapper;
