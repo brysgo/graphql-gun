@@ -1,0 +1,57 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`createContainer reloads your component when new data comes 1`] = `
+<div
+  style={
+    Object {
+      "color": "red",
+    }
+  }
+>
+  {
+    "thing": {
+      "stuff": {
+        "one": "hello",
+        "two": "world"
+      }
+    }
+  }
+</div>
+`;
+
+exports[`createContainer reloads your component when new data comes 2`] = `
+<div
+  style={
+    Object {
+      "color": "red",
+    }
+  }
+>
+  {
+    "thing": {
+      "stuff": {
+        "one": "new",
+        "two": "world"
+      }
+    }
+  }
+</div>
+`;
+
+exports[`createContainer renders the fragment in the container 1`] = `
+<div
+  style={
+    Object {
+      "color": "blue",
+    }
+  }
+>
+  {
+    "color": {
+      "saturation": 255,
+      "value": 255,
+      "hue": 255
+    }
+  }
+</div>
+`;

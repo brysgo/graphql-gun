@@ -14,6 +14,8 @@ Augmented query interface for the graph universal database http://gun.js.org/
 
 `npm install graphql-gun`
 
+# Without React
+
 Then use it like so:
 
 ```
@@ -79,4 +81,107 @@ and it will print...
 }
 ```
 
+Use the live directive to subscribe via an promise/iterator combo.
+
+```
+const myQuery = gql`{
+  fish {
+    red @live {
+      name
+    }
+  }
+}`;
+
+const iter = graphqlGun(myQuery, gun)[Symbol.iterator]();
+
+console.log(await iter.next().value);
+```
+
+Will print...
+
+```
+{
+  fish: {
+    red: {
+      name: 'Frank' // the name you set on the red fish
+    }
+  }
+}
+```
+
+Then try:
+
+```
+gun.get('fish').get('red').put({name: 'bob'});
+
+console.log(await iter.next().value);
+```
+
+And you will get...
+
+```
+{
+  fish: {
+    red: {
+      name: 'bob' // the updated name
+    }
+  }
+}
+```
+
 Take a look at the tests to learn more.
+
+# With React
+
+Use the high order component for a Relay inspired API directly into your Gun DB.
+
+```
+const gql = require("graphql-tag");
+const Gun = require("gun");
+const graphqlGun = require("graphql-gun");
+const React = require("react");
+const ReactDOM = require("react-dom");
+const gun = Gun();
+const { createContainer } = require('graphql-gun/react')({React, gun});
+
+const Color = ({color, palette}) => (
+  // palette will be passed in by the container with all the data you asked for
+  // component will also redraw when your subscriptions update
+  <div style={{color}}>{JSON.stringify(palette, null, 2)}</div>
+)
+
+const ColorContainer = createContainer(Color, {
+  fragments: {
+    palette: gql`{
+      fish {
+        red {
+          name
+        }
+        
+        blue {
+          _chain
+        }
+        
+        friends(type: Set) {
+          name
+          favoriteColor
+        }
+      }
+    }`
+  }
+});
+
+ReactDOM.render(
+  <ColorContainer color={'blue'} />,
+  document.getElementById('root')
+);
+
+```
+
+# Credits
+
+Special thanks to @amark for creating Gun and answering all my noob questions.
+
+Shout out to @stubailo for putting up with my late night `graphql-anywhere` PRs.
+
+Also a shout out to everyone on the Gun [gitter](https://gitter.im/amark/gun) chat for talking through things.
