@@ -10,7 +10,7 @@
     "test": "jest --watch"
   },
   "dependencies": {
-    "graphql-anywhere": "brysgo/graphql-anywhere",
+    "graphql-anywhere": "file:./graphql-anywhere",
     "gun": "^0.6.7"
   },
   "devDependencies": {
