@@ -83,6 +83,7 @@ and it will print...
 
 Use the live directive to subscribe via an promise/iterator combo.
 
+
 ```
 const myQuery = gql`{
   fish {
@@ -92,9 +93,9 @@ const myQuery = gql`{
   }
 }`;
 
-const iter = graphqlGun(myQuery, gun)[Symbol.iterator]();
+const { next } = graphqlGun(myQuery, gun);
 
-console.log(await iter.next().value);
+console.log(await next());
 ```
 
 Will print...
@@ -114,7 +115,7 @@ Then try:
 ```
 gun.get('fish').get('red').put({name: 'bob'});
 
-console.log(await iter.next().value);
+console.log(await next());
 ```
 
 And you will get...
@@ -131,7 +132,10 @@ And you will get...
 
 Take a look at the tests to learn more.
 
+
+
 # With React
+
 
 Use the high order component for a Relay inspired API directly into your Gun DB.
 
