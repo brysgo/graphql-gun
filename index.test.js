@@ -12,12 +12,12 @@ describe("graphqlGun", () => {
     expect(
       await graphqlGun(
         gql`{
-      foo {
-        bar {
-          baz
-        }
-      }
-    }`,
+          foo {
+            bar {
+              baz
+            }
+          }
+        }`,
         gun
       )
     ).toMatchSnapshot();
@@ -28,13 +28,13 @@ describe("graphqlGun", () => {
 
     const results = await graphqlGun(
       gql`{
-      foo {
-        bar {
-          _chain
-          hello
+        foo {
+          bar {
+            _chain
+            hello
+          }
         }
-      }
-    }`,
+      }`,
       gun
     );
 
@@ -68,10 +68,10 @@ describe("graphqlGun", () => {
 
     const results = await graphqlGun(
       gql`{
-      things(type: Set) {
-        stuff
-      }
-    }`,
+        things(type: Set) {
+          stuff
+        }
+      }`,
       gun
     );
 
@@ -86,22 +86,20 @@ describe("graphqlGun", () => {
     gun.get("things").set(thing1);
     gun.get("things").set(thing2);
 
-    let iter = graphqlGun(
+    let { next } = graphqlGun(
       gql`{
-      things(type: Set) {
-        stuff @live
-      }
-    }`,
+        things(type: Set) {
+          stuff @live
+        }
+      }`,
       gun
-    )[Symbol.iterator]();
+    );
 
-    await iter.next();
-
-    expect(iter.value).toEqual({ things: [{ stuff: "b" }, { stuff: "c" }] });
+    expect(await next()).toEqual({ things: [{ stuff: "b" }, { stuff: "c" }] });
 
     gun.get("thing1").put({ stuff: "changed" });
 
-    expect((await iter.next()).value).toEqual({
+    expect(await next()).toEqual({
       things: [{ stuff: "changed" }, { stuff: "c" }]
     });
   });

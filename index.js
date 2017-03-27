@@ -100,8 +100,10 @@ module.exports = function graphqlGun(query, gun) {
     triggerUpdate();
     return value;
   });
+  let iter = iterableObj();
+  result.next = () => iter.next().then(r => r.value);
   result[Symbol.iterator] = function() {
-    return iterableObj();
+    return iter;
   };
   return result;
 };
