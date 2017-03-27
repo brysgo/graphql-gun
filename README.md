@@ -16,6 +16,8 @@ Augmented query interface for the graph universal database http://gun.js.org/
 
 # Without React
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/brysgo/graphql-gun.svg)](https://greenkeeper.io/)
+
 Then use it like so:
 
 ```
