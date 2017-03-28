@@ -27,16 +27,7 @@ module.exports = function graphqlGun(query, gun) {
       chain.__graphQLContext = Object.assign({ path }, opts);
       return chain;
     };
-    let subscribe = parentSubscribed ||
-      info.fieldNode.directives.some(directive => {
-        const target = { kind: "Name", value: "live" };
-        for (var key in target) {
-          if (target[key] !== directive.name[key]) {
-            return false;
-          }
-        }
-        return true;
-      });
+    let subscribe = parentSubscribed || !!info.directives["live"];
 
     if (info.isLeaf) {
       if (key === "_chain") {
