@@ -4,7 +4,7 @@ exports[`graphqlGun can do the basics 1`] = `
 Object {
   "foo": Object {
     "bar": Object {
-      "baz": "baz",
+      "baz": "ping",
     },
   },
 }
@@ -15,7 +15,7 @@ Object {
   "foo": Object {
     "bar": Object {
       "_chain": undefined,
-      "hello": "pop",
+      "hello": "world",
     },
   },
 }

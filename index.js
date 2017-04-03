@@ -1,9 +1,9 @@
 const Gun = require("gun/gun");
-const graphql = require("graphql-anywhere").default;
+const traverse = require("traverse-async").traverse;
 
 module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
-  let nextResolve, result, resultValue = {};
+  let nextResolve, result, resultValue = {}, refMap = {};
   const iterableObj = () => {
     const nextPromise = new Promise(resolve => nextResolve = resolve);
     return { value: resultValue, next: () => nextPromise };
@@ -14,84 +14,96 @@ module.exports = function graphqlGun(query, gun) {
     }
   };
 
-  const resolver = (fieldName, chain, args, context, info) => {
-    let key = info.resultKey;
-    const {
-      path: parentPath,
-      subscribe: parentSubscribed,
-      index: indexInList
-    } = chain.__graphQLContext;
-    const path = Array.from(parentPath);
-    path.push(key);
-    const withContext = (chain, opts) => {
-      chain.__graphQLContext = Object.assign({ path }, opts);
-      return chain;
-    };
-    let subscribe = parentSubscribed || !!info.directives["live"];
-
-    if (info.isLeaf) {
-      if (key === "_chain") {
-        return Promise.resolve(chain);
-      } else {
-        return new Promise(resolve => {
-          chain.val(val => {
-            if (val[key]) {
-              resolve(val[key]);
-            } else {
-              resolve(val);
-            }
-          });
-          if (subscribe) {
-            chain.on(
-              val => {
-                const newPath = Array.from(parentPath);
-                if (indexInList !== undefined) newPath.push(indexInList);
-                const ref = newPath.reduce(
-                  (acc, curr) => {
-                    return acc[curr];
-                  },
-                  resultValue
-                );
-                if (val[key]) {
-                  ref[key] = val[key];
-                } else {
-                  ref[key] = val;
-                }
-                triggerUpdate();
-              },
-              true
-            );
-          }
-        });
+  let waitCounter = 0;
+  let traversed;
+  let iter = iterableObj();
+  result = iter.next();
+  traverse(
+    query,
+    function(node, next) {
+      if (node && typeof node === "object") {
+        node.chainPath = Array.from(
+          (this.parent && this.parent.chainPath) || []
+        );
+        node.chain = (this.parent && this.parent.chain) || gun;
+        node.refMap = (this.parent && this.parent.refMap) || refMap;
+        node.ref = (this.parent && this.parent.ref) || resultValue;
+        node.__graphqlContext = (this.parent &&
+          this.parent.__graphqlContext) || {};
       }
-    } else if (args && args.type === "Set") {
-      return new Promise(resolve => {
-        const array = [];
-        gun.get(key).val(function(data, key, at) {
-          var ref = this; // also `at.gun`
-          Gun.obj.map(data, function(val, field) {
-            // or a for in
-            if (field === "_") return;
-            array.push(
-              withContext(ref.get(field), { subscribe, index: array.length })
-            );
-          });
-          resolve(array);
-        });
-      });
-    } else {
-      return Promise.resolve(withContext(chain.get(key), { subscribe }));
-    }
-  };
+      if (node && node.kind === "Field") {
+        const keyName = node.name.value;
+        node.chainPath.push(keyName); // used for debugging
+        const parentChain = node.chain;
+        node.chain = node.chain.get(keyName);
+        const isLeaf = node.selectionSet === null;
 
-  gun.__graphQLContext = { path: [] };
-  result = graphql(resolver, query, gun);
-  result = result.then(value => {
-    Object.assign(resultValue, value);
-    triggerUpdate();
+        if (isLeaf) {
+          if (keyName === "_chain") {
+            node.ref[keyName] = parentChain;
+          } else {
+            if (node.__graphqlContext.isSet) {
+              const localMap = {};
+              node.chain.on(
+                (result, key, chain) => {
+                  const prev = chain.via || chain.back;
+                  let id = prev.get;
+                  if (typeof id === "function") {
+                    prev.get(function(ack) {
+                      id = ack.get;
+                    });
+                  }
+                  node.refMap[id] = node.refMap[id] || {};
+                  node.refMap[id][keyName] = result;
+                  node.ref.splice(
+                    0,
+                    node.ref.length,
+                    ...Object.values(node.refMap)
+                  );
+                  if (traversed && waitCounter <= 0) {
+                    triggerUpdate();
+                  }
+                },
+                true
+              );
+            } else {
+              waitCounter++;
+              node.chain.on(function(result) {
+                waitCounter--;
+                node.ref[keyName] = result;
+                if (traversed && waitCounter <= 0) {
+                  triggerUpdate();
+                }
+              });
+            }
+          }
+        } else {
+          const isSet = node.arguments.some(
+            arg => arg.value.kind === "EnumValue" && arg.value.value === "Set"
+          );
+          if (isSet) {
+            node.chain = node.chain.map();
+            node.refMap[keyName] = {};
+            node.ref[keyName] = [];
+            node.chainPath.push("[]"); // for debugging
+            node.__graphqlContext.isSet = true;
+          } else {
+            node.ref[keyName] = {};
+          }
+          node.ref = node.ref[keyName];
+          node.refMap = node.refMap[keyName];
+        }
+      }
+      next();
+    },
+    function(newObj) {
+      traversed = true;
+      if (waitCounter === 0) triggerUpdate();
+    }
+  );
+  result = result.then(({ value }) => {
     return value;
   });
-  let iter = iterableObj();
   result.next = () => iter.next().then(r => r.value);
   result[Symbol.iterator] = function() {
     return iter;

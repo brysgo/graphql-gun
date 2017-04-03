@@ -7,7 +7,7 @@ const gun = Gun();
 
 describe("graphqlGun", () => {
   it("can do the basics", async () => {
-    gun.get("foo").put({ bar: "baz" });
+    gun.get("foo").put({ bar: { baz: "ping" } });
 
     expect(
       await graphqlGun(
@@ -24,7 +24,7 @@ describe("graphqlGun", () => {
   });
 
   it("lets you grab the chain at any point", async () => {
-    gun.get("foo").put({ bar: "pop" });
+    gun.get("foo").put({ bar: { hello: "world" } });
 
     const results = await graphqlGun(
       gql`{
@@ -44,8 +44,10 @@ describe("graphqlGun", () => {
       results.foo.bar._chain.on(
         (value, key) => {
           expect(key).toEqual("bar");
-          expect(value).toEqual("pop");
-          resolve();
+          if (value.some) {
+            expect(value.some).toEqual("stuff");
+            resolve();
+          }
         },
         { changed: true }
       );
@@ -82,7 +84,7 @@ describe("graphqlGun", () => {
     const thing1 = gun.get("thing1");
     const thing2 = gun.get("thing2");
     thing1.put({ stuff: "b", more: "ok" });
-    thing2.put({ stuff: "c", more: "ok" });
+    thing2.put({ stuff: "c", more: "two" });
     gun.get("things").set(thing1);
     gun.get("things").set(thing2);
 

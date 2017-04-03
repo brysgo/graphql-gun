@@ -48,9 +48,9 @@ exports[`createContainer renders the fragment in the container 1`] = `
 >
   {
     "color": {
+      "hue": 255,
       "saturation": 255,
-      "value": 255,
-      "hue": 255
+      "value": 255
     }
   }
 </div>
