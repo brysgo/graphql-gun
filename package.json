@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "graphql-anywhere": "github:brysgo/graphql-anywhere#npm",
-    "gun": "^0.6.7"
+    "gun": "^0.7.0"
   },
   "devDependencies": {
     "babel": "^6.23.0",
