@@ -10,7 +10,7 @@
     "test": "jest --watch"
   },
   "dependencies": {
-    "traverse-async": "^0.1.6"
+    "traverse-async": "^0.1.6",
     "gun": "^0.7.0"
   },
   "devDependencies": {
