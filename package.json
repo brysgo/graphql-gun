@@ -20,7 +20,7 @@
     "graphql-tag": "^2.0.0",
     "graphql": "^0.9.1",
     "jest": "^19.0.2",
-    "prettier": "^0.22.0",
+    "prettier": "^1.0.0",
     "react": "^15.4.2",
     "react-test-renderer": "^15.4.2"
   }
