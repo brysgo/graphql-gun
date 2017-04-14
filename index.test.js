@@ -149,4 +149,71 @@ describe("graphqlGun", () => {
       ]
     });
   });
+
+  it("supports mad nesting with subscriptions", async () => {
+    const thing1 = gun.get("thing1");
+    const thing2 = gun.get("thing2");
+    const moreThings1 = gun.get("moreThing1");
+    const moreThings2 = gun.get("moreThing2");
+    const moreThings3 = gun.get("moreThing3");
+    const moreThings4 = gun.get("moreThing4");
+    moreThings1.put({ otherStuff: "one fish" });
+    moreThings2.put({ otherStuff: "two fish" });
+    moreThings3.put({ otherStuff: "red fish" });
+    moreThings4.put({ otherStuff: "blue fish" });
+    thing1.put({ stuff: "b", more: "ok" });
+    thing2.put({ stuff: "c", more: "ok" });
+    thing1.get("moreThings").set(moreThings1);
+    thing1.get("moreThings").set(moreThings2);
+    thing2.get("moreThings").set(moreThings3);
+    thing2.get("moreThings").set(moreThings4);
+    gun.get("things").set(thing1);
+    gun.get("things").set(thing2);
+
+    let { next } = graphqlGun(
+      gql`{
+        things(type: Set) @live {
+          stuff
+          moreThings(type: Set) {
+            otherStuff
+          }
+        }
+      }`,
+      gun
+    );
+
+    expect(await next()).toEqual({
+      things: [
+        {
+          stuff: "b",
+          moreThings: [{ otherStuff: "one fish" }, { otherStuff: "two fish" }]
+        },
+        {
+          stuff: "c",
+          moreThings: [{ otherStuff: "red fish" }, { otherStuff: "blue fish" }]
+        }
+      ]
+    });
+
+    const thing3 = gun.get("thing3");
+    thing3.put({ stuff: "d", more: "just added" });
+    thing2.put({ stuff: "cc" });
+    gun.get("things").set(thing3);
+
+    expect(await next()).toEqual({
+      things: [
+        {
+          stuff: "b",
+          moreThings: [{ otherStuff: "one fish" }, { otherStuff: "two fish" }]
+        },
+        {
+          stuff: "cc",
+          moreThings: [{ otherStuff: "red fish" }, { otherStuff: "blue fish" }]
+        },
+        {
+          stuff: "d"
+        }
+      ]
+    });
+  });
 });
