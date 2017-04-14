@@ -67,7 +67,7 @@ module.exports = function graphqlGun(query, gun) {
     } else if (args && args.type === "Set") {
       return new Promise(resolve => {
         const array = [];
-        gun.get(key).val(function(data, key, at) {
+        chain.get(key).val(function(data, key, at) {
           var ref = this; // also `at.gun`
           Gun.obj.map(data, function(val, field) {
             // or a for in
