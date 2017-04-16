@@ -1,6 +1,6 @@
 {
   "name": "graphql-gun",
-  "version": "0.0.5",
+  "version": "0.1.0",
   "description": "A graphql API for the gun p2p graph database",
   "main": "index.js",
   "repository": "",
