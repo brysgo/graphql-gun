@@ -9,18 +9,16 @@ describe("graphqlGun", () => {
   it("can do the basics", async () => {
     gun.get("foo").put({ bar: "baz" });
 
-    expect(
-      await graphqlGun(
-        gql`{
+    const { next } = graphqlGun(
+      gql`{
           foo {
-            bar {
-              baz
-            }
+            bar
           }
         }`,
-        gun
-      )
-    ).toMatchSnapshot();
+      gun
+    );
+    await next();
+    expect(await next()).toMatchSnapshot();
   });
 
   it("lets you grab the chain at any point", async () => {
@@ -66,7 +64,7 @@ describe("graphqlGun", () => {
       gun.get("things").set(thing2, resolve);
     });
 
-    const results = await graphqlGun(
+    const { next } = graphqlGun(
       gql`{
         things(type: Set) {
           stuff
@@ -75,7 +73,9 @@ describe("graphqlGun", () => {
       gun
     );
 
-    expect(results).toEqual({ things: [{ stuff: "b" }, { stuff: "c" }] });
+    await next();
+
+    expect(await next()).toEqual({ things: [{ stuff: "b" }, { stuff: "c" }] });
   });
 
   it("lets you subscribe to updates", async () => {
@@ -211,6 +211,7 @@ describe("graphqlGun", () => {
           moreThings: [{ otherStuff: "red fish" }, { otherStuff: "blue fish" }]
         },
         {
+          moreThings: [],
           stuff: "d"
         }
       ]
