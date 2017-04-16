@@ -55,9 +55,9 @@ exports[`react createContainer renders the fragment in the container 1`] = `
   {
     "palette": {
       "color": {
+        "hue": 255,
         "saturation": 255,
-        "value": 255,
-        "hue": 255
+        "value": 255
       }
     },
     "color": "blue"

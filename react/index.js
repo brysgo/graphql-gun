@@ -20,7 +20,7 @@ module.exports = function({ React, gun }) {
         return asyncIterator.next().then(iter => {
           this.setState({ data: { [fragment]: iter.value } });
           this.resetPromise(); // for testing
-          this.reloadFragmentOnResolve(fragment, iter);
+          this.reloadFragmentOnResolve(fragment, asyncIterator);
         });
       }
 
@@ -44,10 +44,10 @@ module.exports = function({ React, gun }) {
     Container.displayName = `${Component.displayName}DataContainer`;
     return Container;
   }
-  
+
   function graphqlGun(data) {
     return function wrap(Component) {
-      return createContainer(Component, { fragments: {data} });
+      return createContainer(Component, { fragments: { data } });
     };
   }
 

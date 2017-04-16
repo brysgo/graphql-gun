@@ -1,100 +1,119 @@
 const Gun = require("gun/gun");
 const graphql = require("graphql-anywhere").default;
+const {
+  thunkish,
+  deferrableOrImmediate,
+  arrayOrDeferrable
+} = require("./async");
 
 module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
-  let nextResolve, result, resultValue = {};
-  const iterableObj = () => {
-    const nextPromise = new Promise(resolve => nextResolve = resolve);
-    return { value: resultValue, next: () => nextPromise };
-  };
-  const triggerUpdate = () => {
-    if (nextResolve) {
-      nextResolve(iterableObj());
-    }
-  };
-
-  const resolver = (fieldName, chain, args, context, info) => {
+  let resultValue = {};
+  let subscriptions = {};
+  const resolver = (fieldName, container, args, context, info) => {
     let key = info.resultKey;
     const {
-      path: parentPath,
       subscribe: parentSubscribed,
-      index: indexInList
-    } = chain.__graphQLContext;
-    const path = Array.from(parentPath);
-    path.push(key);
-    const withContext = (chain, opts) => {
-      chain.__graphQLContext = Object.assign({ path }, opts);
-      return chain;
-    };
-    let subscribe = parentSubscribed || !!info.directives["live"];
+      index: indexInList,
+      ref: parentRef,
+      path,
+      chain
+    } = container;
+    let ref = parentRef;
+    let subscribe =
+      (parentSubscribed || !!info.directives["live"]) &&
+      !info.directives["unlive"];
 
     if (info.isLeaf) {
       if (key === "_chain") {
-        return Promise.resolve(chain);
+        ref[key] = chain;
+        return chain;
       } else {
-        return new Promise(resolve => {
-          chain.val(val => {
+        return thunkish(resolve => {
+          const updater = val => {
             if (val[key]) {
+              ref[key] = val[key];
               resolve(val[key]);
             } else {
+              ref[key] = val;
               resolve(val);
             }
-          });
-          if (subscribe) {
-            chain.on(
-              val => {
-                const newPath = Array.from(parentPath);
-                if (indexInList !== undefined) newPath.push(indexInList);
-                const ref = newPath.reduce(
-                  (acc, curr) => {
-                    return acc[curr];
-                  },
-                  resultValue
-                );
-                if (val[key]) {
-                  ref[key] = val[key];
-                } else {
-                  ref[key] = val;
-                }
-                triggerUpdate();
-              },
-              true
-            );
+          };
+          const stringPath = [...path, key].join(".");
+          if (subscribe && subscriptions[stringPath] === undefined) {
+            subscriptions[stringPath] = chain.get(key).on(updater, true);
+          } else {
+            chain.get(key).val(updater);
           }
         });
       }
     } else if (args && args.type === "Set") {
-      return new Promise(resolve => {
-        const array = [];
-        chain.get(key).val(function(data, key, at) {
-          var ref = this; // also `at.gun`
+      ref[key] = ref[key] || [];
+      ref = ref[key];
+      const keyValueSet = {};
+      const resultSet = {};
+
+      const t = thunkish(function(rerunChild) {
+        const updater = function(data, _key, at) {
+          var gunRef = this; // also `at.gun`
           Gun.obj.map(data, function(val, field) {
             // or a for in
             if (field === "_") return;
-            array.push(
-              withContext(ref.get(field), { subscribe, index: array.length })
-            );
+            keyValueSet[field] = keyValueSet[field] || {};
+            resultSet[field] = {
+              chain: gunRef.get(field),
+              subscribe,
+              ref: keyValueSet[field],
+              path: [...path, key, field]
+            };
           });
-          resolve(array);
-        });
+          ref.splice(0, ref.length, ...Object.values(keyValueSet));
+          rerunChild(Object.values(resultSet));
+        };
+        chain.get(key).on(updater, true);
       });
+      return t;
     } else {
-      return Promise.resolve(withContext(chain.get(key), { subscribe }));
+      ref[key] = ref[key] || {};
+      return {
+        chain: chain.get(key),
+        subscribe,
+        path: [...path, key],
+        ref: ref[key]
+      };
     }
   };
 
-  gun.__graphQLContext = { path: [] };
-  result = graphql(resolver, query, gun);
-  result = result.then(value => {
-    Object.assign(resultValue, value);
-    triggerUpdate();
-    return value;
+  const graphqlOut = graphql(
+    resolver,
+    query,
+    { path: [], ref: resultValue, chain: gun },
+    null,
+    null,
+    {
+      deferrableOrImmediate,
+      arrayOrDeferrable
+    }
+  );
+  const thunk = thunkish(function(triggerUpdate) {
+    triggerUpdate(resultValue);
+    if (graphqlOut.isThunk) {
+      graphqlOut(function(actualRes) {
+        triggerUpdate(resultValue); // TODO: Figure out how to use actualRes instead of tracking resultValue
+      });
+    }
   });
-  let iter = iterableObj();
-  result.next = () => iter.next().then(r => r.value);
+  const result = thunk.toPromiseFactory()();
+  result.next = thunk.toPromiseFactory();
   result[Symbol.iterator] = function() {
-    return iter;
+    const factory = thunk.toPromiseFactory();
+    return {
+      next: () =>
+        factory().then(value => ({
+          value,
+          done: false
+        }))
+    };
   };
   return result;
 };
