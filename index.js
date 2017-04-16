@@ -10,19 +10,16 @@ module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
   let resultValue = {};
   let subscriptions = {};
-  const resolver = (fieldName, chain, args, context, info) => {
+  const resolver = (fieldName, container, args, context, info) => {
     let key = info.resultKey;
     const {
       subscribe: parentSubscribed,
       index: indexInList,
       ref: parentRef,
-      path
-    } = chain.__graphQLContext;
+      path,
+      chain
+    } = container;
     let ref = parentRef;
-    const withContext = (chain, opts) => {
-      chain.__graphQLContext = Object.assign({}, opts);
-      return chain;
-    };
     let subscribe =
       (parentSubscribed || !!info.directives["live"]) &&
       !info.directives["unlive"];
@@ -36,10 +33,11 @@ module.exports = function graphqlGun(query, gun) {
           const updater = val => {
             if (val[key]) {
               ref[key] = val[key];
+              resolve(val[key]);
             } else {
               ref[key] = val;
+              resolve(val);
             }
-            resolve(resultValue);
           };
           const stringPath = [...path, key].join(".");
           if (subscribe && subscriptions[stringPath] === undefined) {
@@ -62,11 +60,12 @@ module.exports = function graphqlGun(query, gun) {
             // or a for in
             if (field === "_") return;
             keyValueSet[field] = keyValueSet[field] || {};
-            resultSet[field] = withContext(gunRef.get(field), {
+            resultSet[field] = {
+              chain: gunRef.get(field),
               subscribe,
               ref: keyValueSet[field],
               path: [...path, key, field]
-            });
+            };
           });
           ref.splice(0, ref.length, ...Object.values(keyValueSet));
           rerunChild(Object.values(resultSet));
@@ -76,24 +75,31 @@ module.exports = function graphqlGun(query, gun) {
       return t;
     } else {
       ref[key] = ref[key] || {};
-      return withContext(chain.get(key), {
+      return {
+        chain: chain.get(key),
         subscribe,
         path: [...path, key],
         ref: ref[key]
-      });
+      };
     }
   };
 
-  gun.__graphQLContext = { path: [], ref: resultValue };
-  const graphqlOut = graphql(resolver, query, gun, null, null, {
-    deferrableOrImmediate,
-    arrayOrDeferrable
-  });
+  const graphqlOut = graphql(
+    resolver,
+    query,
+    { path: [], ref: resultValue, chain: gun },
+    null,
+    null,
+    {
+      deferrableOrImmediate,
+      arrayOrDeferrable
+    }
+  );
   const thunk = thunkish(function(triggerUpdate) {
     triggerUpdate(resultValue);
     if (graphqlOut.isThunk) {
-      graphqlOut(function() {
-        triggerUpdate(resultValue);
+      graphqlOut(function(actualRes) {
+        triggerUpdate(resultValue); // TODO: Figure out how to use actualRes instead of tracking resultValue
       });
     }
   });
