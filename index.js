@@ -31,7 +31,7 @@ module.exports = function graphqlGun(query, gun) {
       } else {
         return thunkish(resolve => {
           const updater = val => {
-            if (val[key]) {
+            if (!!val && val[key]) {
               ref[key] = val[key];
               resolve(val[key]);
             } else {
