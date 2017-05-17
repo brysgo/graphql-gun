@@ -19,7 +19,7 @@
     "babel-preset-latest": "^6.24.0",
     "graphql": "^0.9.1",
     "graphql-tag": "^2.0.0",
-    "jest": "^19.0.2",
+    "jest": "^20.0.0",
     "prettier": "^1.0.0",
     "react": "^15.4.2",
     "react-test-renderer": "^15.4.2"
