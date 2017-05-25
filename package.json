@@ -17,7 +17,7 @@
     "babel": "^6.23.0",
     "babel-polyfill": "^6.23.0",
     "babel-preset-latest": "^6.24.0",
-    "graphql": "^0.9.1",
+    "graphql": "^0.10.0",
     "graphql-tag": "^2.0.0",
     "jest": "^20.0.0",
     "prettier": "^1.0.0",
