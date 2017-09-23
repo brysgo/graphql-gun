@@ -9,13 +9,13 @@ exports[`createContainer reloads your component when new data comes 1`] = `
   }
 >
   {
-    "thing": {
-      "stuff": {
-        "one": "hello",
-        "two": "world"
-      }
+  "thing": {
+    "stuff": {
+      "one": "hello",
+      "two": "world"
     }
   }
+}
 </div>
 `;
 
@@ -47,11 +47,11 @@ exports[`createContainer renders the fragment in the container 1`] = `
   }
 >
   {
-    "color": {
-      "saturation": 255,
-      "value": 255,
-      "hue": 255
-    }
+  "color": {
+    "hue": 255,
+    "saturation": 255,
+    "value": 255
   }
+}
 </div>
 `;

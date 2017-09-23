@@ -3,7 +3,8 @@ const gql = require("graphql-tag");
 const Gun = require("gun/gun");
 const graphqlGun = require("../");
 const React = require("react");
-const gun = Gun();
+const { promisify } = require("util");
+const gun = Gun().get("react-tests");
 const { createContainer } = require("./")({ React, gun });
 
 const renderer = require("react-test-renderer");
@@ -48,10 +49,12 @@ describe("createContainer", () => {
   });
 
   it("reloads your component when new data comes", async () => {
-    gun.get("thing").put({
-      stuff: {
-        one: "hello",
-        two: "world"
+    gun.put({
+      thing: {
+        stuff: {
+          one: "red",
+          two: "blue"
+        }
       }
     });
 
