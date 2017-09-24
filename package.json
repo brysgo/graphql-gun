@@ -7,7 +7,7 @@
   "author": "Bryan Goldstein <brysgo@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "jest --watch"
+    "test": "jest"
   },
   "dependencies": {
     "babel-jest": "^21.0.2",
