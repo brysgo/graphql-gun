@@ -213,8 +213,43 @@ describe("graphqlGun", () => {
         {
           moreThings: [],
           stuff: "d"
+        },
+        {
+          moreThings: [],
+          stuff: "e"
         }
       ]
     });
+
+    const thing4 = gun.get("thing4");
+    thing4.put({ stuff: "e" });
+    gun.get("things").set(thing4);
+  });
+
+  it("works with a simple case of two properties and a promise interface", async () => {
+    const thing = gun.get("thing");
+    const fish = thing.get("fish");
+    fish.put({"color": "red", "fins": 2});
+
+    const result = await graphqlGun(
+      gql`{
+        thing {
+          fish {
+            color
+            fins
+          }
+        }
+      }`,
+      gun
+    );
+
+    expect(result).toEqual({
+      thing: {
+        fish: {
+          color: 'red',
+          fins: 2
+        }
+      }
+    })
   });
 });
