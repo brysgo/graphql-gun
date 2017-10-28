@@ -8,61 +8,115 @@ const {
   arrayOrDeferrable
 } = require("./async");
 
+
 module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
-  let resultValue = {};
-  let subscriptions = {};
+  const resultValue = {};
+
+  function loadSetQuery(ref, node, resultKey, chain) {
+    ref[resultKey] = ref[resultKey] || [];
+    const listRef = ref[resultKey];
+    const keyValueSet = {};
+    const resultSet = {};
+
+    const updater = function(data, _key, at) {
+      var gunRef = this; // also `at.gun`
+      Gun.obj.map(data, function(val, field) {
+        // or a for in
+        if (field === "_") return;
+        keyValueSet[field] = keyValueSet[field] || {};
+        resultSet[field] = [
+          keyValueSet[field],
+          gunRef.get(field),
+        ];
+      });
+      listRef.splice(0, listRef.length, ...Object.values(keyValueSet));
+      tryGet(node, "childSubscriptions", []).forEach(function(rerunChild) {
+        Object.values(resultSet).forEach(function(r) {
+          rerunChild(r[0], r[1]);
+        });
+      });
+    };
+    if (!node.subscriptionHandle) {
+      node.subscriptionHandle = chain.get(resultKey).on(updater, true);
+    }
+  }
 
   const thunk = thunkish(function(triggerUpdate) {
     // this visit call is a lightweight replacement for graphql anywhere
     visit(query, {
       Field: {
         enter(node, astKey, astParent, astPath, ancestors) {
-          const resultKey = tryGet(node,"name.value");
+          node.resultKey = tryGet(node,"name.value");
           const ancestorFields = ancestors.filter((a) => tryGet(a, 'kind') === "Field" )
-          const parent = ancestorFields[ancestorFields.length-1] || {};
-          const path = ancestorFields.map((a) => tryGet(a, 'name.value'));
-          const args =  node.arguments.reduce(function(acc, argument) {
+          node.parent = ancestorFields[ancestorFields.length-1] || { childSubscriptions: [] };
+          node.path = ancestorFields.map((a) => tryGet(a, 'name.value'));
+          node.args =  node.arguments.reduce(function(acc, argument) {
             acc[tryGet(argument, "name.value")] = tryGet(argument, "value.value");
             return acc;
           }, {});
-          const ref = parent.resultValue || resultValue;
-          const chain = path.reduce(function(acc, cur) {
-            return acc.get(cur);
-          }, gun)
           const isLeaf = node.selectionSet === null
           const directives = node.directives.map(function(n){return n.name.value})
 
+          node.childSubscriptions = [];
           node.subscribed =
-            (parent.subscribed || directives.includes("live")) &&
+            (node.parent.subscribed || directives.includes("live")) &&
             !directives.includes("unlive");
 
-          if (isLeaf) {
-            if (resultKey === "_chain") {
-              ref[resultKey] = chain;
-            } else {
-              const updater = val => {
-                if (!!val && val[resultKey]) {
-                  ref[resultKey] = val[resultKey];
-                } else {
-                  ref[resultKey] = val;
-                }
-                triggerUpdate(resultValue);
-              };
-              const stringPath = [...path, resultKey].join(".");
-              if (node.subscribed && subscriptions[stringPath] === undefined) {
-                subscriptions[stringPath] = chain.get(resultKey).on(updater, true);
+          node.parent.childSubscriptions.push(function(refArg, chainArg) {
+            const ref = (refArg) ? refArg : node.parent.resultValue || resultValue;
+            const chain = (chainArg) ? chainArg : node.path.reduce(function(acc, cur) {
+              return acc.get(cur);
+            }, gun)
+
+            if (Array.isArray(ref)) {
+              throw new TypeError("Expected result reference to be an object not an array!");
+            }
+
+            if (isLeaf) {
+              if (node.resultKey === "_chain") {
+                ref[node.resultKey] = chain;
               } else {
-                // FIXME: make this work with val
-                chain.get(resultKey).on(updater).off();
+                const updater = val => {
+                  if (!!val && val[node.resultKey]) {
+                    ref[node.resultKey] = val[node.resultKey];
+                  } else {
+                    ref[node.resultKey] = val;
+                  }
+                  triggerUpdate(resultValue);
+                };
+                if (!node.subscriptionHandle) {
+                  node.subscriptionHandle = chain.get(node.resultKey).on(updater, true);
+                }
+              }
+            } else {
+              if (node.args.type === "Set") {
+                loadSetQuery(ref, node, node.resultKey, chain);
+              } else {
+                ref[node.resultKey] = ref[node.resultKey] || {};
               }
             }
-          } else {
-            ref[resultKey] = ref[resultKey] || {};
-          }
 
-          node.resultValue = ref[resultKey];
+            if (!node.subscribed && node.subscriptionHandle) {
+              // FIXME: make this work with val
+              node.subscriptionHandle.off();
+            }
+
+            node.resultValue = ref[node.resultKey];
+          });
+          if (tryGet(node.parent,"args.type") !== "Set") {
+            node.parent.childSubscriptions[node.parent.childSubscriptions.length-1]();
+          }
         },
+        leave(node) {
+          const ref = node.parent.resultValue || resultValue;
+          const chain = node.path.reduce(function(acc, cur) {
+              return acc.get(cur);
+            }, gun)
+          if (tryGet(node,"args.type") !== "Set" && node.childSubscriptions.length > 0) {
+            loadSetQuery(ref, node, node.resultKey, chain);
+          }
+        }
       }
     })
 
@@ -74,10 +128,10 @@ module.exports = function graphqlGun(query, gun) {
     const factory = thunk.toPromiseFactory();
     return {
       next: () =>
-        factory().then(value => ({
-          value,
-          done: false
-        }))
+      factory().then(value => ({
+        value,
+        done: false
+      }))
     };
   };
   return result;
