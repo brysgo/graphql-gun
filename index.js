@@ -1,5 +1,7 @@
 const Gun = require("gun/gun");
-const graphql = require("graphql-anywhere").default;
+const { visit } = require("graphql/language")
+const graphql = require("graphql-anywhere").default
+const tryGet = require("try-get");
 const {
   thunkish,
   deferrableOrImmediate,
@@ -10,98 +12,61 @@ module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
   let resultValue = {};
   let subscriptions = {};
-  const resolver = (fieldName, container, args, context, info) => {
-    let key = info.resultKey;
-    const {
-      subscribe: parentSubscribed,
-      index: indexInList,
-      ref: parentRef,
-      path,
-      chain
-    } = container;
-    let ref = parentRef;
-    let subscribe =
-      (parentSubscribed || !!info.directives["live"]) &&
-      !info.directives["unlive"];
 
-    if (info.isLeaf) {
-      if (key === "_chain") {
-        ref[key] = chain;
-        return chain;
-      } else {
-        return thunkish(resolve => {
-          const updater = val => {
-            if (!!val && val[key]) {
-              ref[key] = val[key];
-              resolve(val[key]);
-            } else {
-              ref[key] = val;
-              resolve(val);
-            }
-          };
-          const stringPath = [...path, key].join(".");
-          if (subscribe && subscriptions[stringPath] === undefined) {
-            subscriptions[stringPath] = chain.get(key).on(updater, true);
-          } else {
-            chain.get(key).val(updater);
-          }
-        });
-      }
-    } else if (args && args.type === "Set") {
-      ref[key] = ref[key] || [];
-      ref = ref[key];
-      const keyValueSet = {};
-      const resultSet = {};
-
-      const t = thunkish(function(rerunChild) {
-        const updater = function(data, _key, at) {
-          var gunRef = this; // also `at.gun`
-          Gun.obj.map(data, function(val, field) {
-            // or a for in
-            if (field === "_") return;
-            keyValueSet[field] = keyValueSet[field] || {};
-            resultSet[field] = {
-              chain: gunRef.get(field),
-              subscribe,
-              ref: keyValueSet[field],
-              path: [...path, key, field]
-            };
-          });
-          ref.splice(0, ref.length, ...Object.values(keyValueSet));
-          rerunChild(Object.values(resultSet));
-        };
-        chain.get(key).on(updater, true);
-      });
-      return t;
-    } else {
-      ref[key] = ref[key] || {};
-      return {
-        chain: chain.get(key),
-        subscribe,
-        path: [...path, key],
-        ref: ref[key]
-      };
-    }
-  };
-
-  const graphqlOut = graphql(
-    resolver,
-    query,
-    { path: [], ref: resultValue, chain: gun },
-    null,
-    null,
-    {
-      deferrableOrImmediate,
-      arrayOrDeferrable
-    }
-  );
   const thunk = thunkish(function(triggerUpdate) {
+    // this visit call is a lightweight replacement for graphql anywhere
+    visit(query, {
+      Field: {
+        enter(node, astKey, astParent, astPath, ancestors) {
+          const resultKey = tryGet(node,"name.value");
+          const ancestorFields = ancestors.filter((a) => tryGet(a, 'kind') === "Field" )
+          const parent = ancestorFields[ancestorFields.length-1] || {};
+          const path = ancestorFields.map((a) => tryGet(a, 'name.value'));
+          const args =  node.arguments.reduce(function(acc, argument) {
+            acc[tryGet(argument, "name.value")] = tryGet(argument, "value.value");
+            return acc;
+          }, {});
+          const ref = parent.resultValue || resultValue;
+          const chain = path.reduce(function(acc, cur) {
+            return acc.get(cur);
+          }, gun)
+          const isLeaf = node.selectionSet === null
+          const directives = node.directives.map(function(n){return n.name.value})
+
+          node.subscribed =
+            (parent.subscribed || directives.includes("live")) &&
+            !directives.includes("unlive");
+
+          if (isLeaf) {
+            if (resultKey === "_chain") {
+              ref[resultKey] = chain;
+            } else {
+              const updater = val => {
+                if (!!val && val[resultKey]) {
+                  ref[resultKey] = val[resultKey];
+                } else {
+                  ref[resultKey] = val;
+                }
+                triggerUpdate(resultValue);
+              };
+              const stringPath = [...path, resultKey].join(".");
+              if (node.subscribed && subscriptions[stringPath] === undefined) {
+                subscriptions[stringPath] = chain.get(resultKey).on(updater, true);
+              } else {
+                // FIXME: make this work with val
+                chain.get(resultKey).on(updater).off();
+              }
+            }
+          } else {
+            ref[resultKey] = ref[resultKey] || {};
+          }
+
+          node.resultValue = ref[resultKey];
+        },
+      }
+    })
+
     triggerUpdate(resultValue);
-    if (graphqlOut.isThunk) {
-      graphqlOut(function(actualRes) {
-        triggerUpdate(resultValue); // TODO: Figure out how to use actualRes instead of tracking resultValue
-      });
-    }
   });
   const result = thunk.toPromiseFactory()();
   result.next = thunk.toPromiseFactory();
