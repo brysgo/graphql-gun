@@ -5,6 +5,7 @@ const {
   deferrableOrImmediate,
   arrayOrDeferrable
 } = require("./async");
+const tryGet = require("try-get");
 
 module.exports = function graphqlGun(query, gun) {
   gun = gun || Gun();
@@ -21,8 +22,8 @@ module.exports = function graphqlGun(query, gun) {
     } = container;
     let ref = parentRef;
     let subscribe =
-      (parentSubscribed || !!info.directives["live"]) &&
-      !info.directives["unlive"];
+      (parentSubscribed || !!tryGet(info, "directives.live")) &&
+      !tryGet(info, "directives.unlive");
 
     if (info.isLeaf) {
       if (key === "_chain") {

@@ -9,16 +9,16 @@ exports[`react createContainer reloads your component when new data comes 1`] = 
   }
 >
   {
-    "palette": {
-      "thing": {
-        "stuff": {
-          "one": "hello",
-          "two": "world"
-        }
+  "palette": {
+    "thing": {
+      "stuff": {
+        "one": "hello",
+        "two": "world"
       }
-    },
-    "color": "red"
-  }
+    }
+  },
+  "color": "red"
+}
 </div>
 `;
 
@@ -31,16 +31,16 @@ exports[`react createContainer reloads your component when new data comes 2`] = 
   }
 >
   {
-    "palette": {
-      "thing": {
-        "stuff": {
-          "one": "new",
-          "two": "world"
-        }
+  "palette": {
+    "thing": {
+      "stuff": {
+        "one": "hello",
+        "two": "world"
       }
-    },
-    "color": "red"
-  }
+    }
+  },
+  "color": "red"
+}
 </div>
 `;
 
@@ -53,15 +53,15 @@ exports[`react createContainer renders the fragment in the container 1`] = `
   }
 >
   {
-    "palette": {
-      "color": {
-        "hue": 255,
-        "saturation": 255,
-        "value": 255
-      }
-    },
-    "color": "blue"
-  }
+  "palette": {
+    "color": {
+      "hue": 255,
+      "saturation": 255,
+      "value": 255
+    }
+  },
+  "color": "blue"
+}
 </div>
 `;
 
@@ -74,14 +74,14 @@ exports[`react graphqlGun provides apollo client syntax for container 1`] = `
   }
 >
   {
-    "data": {
-      "color": {
-        "hue": 255,
-        "saturation": 255,
-        "value": 255
-      }
-    },
-    "color": "blue"
-  }
+  "data": {
+    "color": {
+      "hue": 255,
+      "saturation": 255,
+      "value": 255
+    }
+  },
+  "color": "blue"
+}
 </div>
 `;
