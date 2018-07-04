@@ -22,8 +22,8 @@ module.exports = function graphqlGun(query, gun) {
     } = container;
     let ref = parentRef;
     let subscribe =
-      (parentSubscribed || !!tryGet(info, "directives.live")) &&
-      !tryGet(info, "directives.unlive");
+      (parentSubscribed || "live" in tryGet(info, "directives", {})) &&
+      !("unlive" in tryGet(info, "directives", {}));
 
     if (info.isLeaf) {
       if (key === "_chain") {
@@ -44,7 +44,7 @@ module.exports = function graphqlGun(query, gun) {
           if (subscribe && subscriptions[stringPath] === undefined) {
             subscriptions[stringPath] = chain.get(key).on(updater, true);
           } else {
-            chain.get(key).val(updater);
+            chain.get(key).once(updater);
           }
         });
       }

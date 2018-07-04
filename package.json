@@ -17,7 +17,7 @@
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-polyfill": "^6.26.0",
-    "babel-preset-latest": "^6.24.0",
+    "babel-preset-env": "^1.7.0",
     "graphql": "^0.13.2",
     "graphql-tag": "^2.9.2",
     "jest": "^23.2.0",
