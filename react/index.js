@@ -1,4 +1,5 @@
 const graphqlGunUtil = require("../");
+const tryGet = require("try-get");
 
 module.exports = function({ React, gun }) {
   function createContainer(Component, { fragments }) {

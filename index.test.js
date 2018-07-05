@@ -7,14 +7,16 @@ const gun = Gun();
 
 describe("graphqlGun", () => {
   it("can do the basics", async () => {
-    gun.get("foo").put({ bar: "baz" });
+    gun.get("gGcdtb").put({ bar: "baz" });
 
     const { next } = graphqlGun(
-      gql`{
-          foo {
+      gql`
+        {
+          gGcdtb {
             bar
           }
-        }`,
+        }
+      `,
       gun
     );
     await next();
@@ -22,24 +24,26 @@ describe("graphqlGun", () => {
   });
 
   it("lets you grab the chain at any point", async () => {
-    gun.get("foo").put({ bar: "pop" });
+    gun.get("gGlygtcaap").put({ bar: "pop" });
 
     const results = await graphqlGun(
-      gql`{
-        foo {
-          bar {
-            _chain
-            hello
+      gql`
+        {
+          gGlygtcaap {
+            bar {
+              _chain
+              hello
+            }
           }
         }
-      }`,
+      `,
       gun
     );
 
     expect(results).toMatchSnapshot();
 
     await new Promise(resolve => {
-      results.foo.bar._chain.on(
+      results.gGlygtcaap.bar._chain.on(
         (value, key) => {
           expect(key).toEqual("bar");
           expect(value).toEqual("pop");
@@ -48,69 +52,89 @@ describe("graphqlGun", () => {
         { changed: true }
       );
 
-      gun.get("foo").get("bar").put({ some: "stuff" });
+      gun
+        .get("gGlygtcaap")
+        .get("bar")
+        .put({ some: "stuff" });
     });
   });
 
   it("iterates over sets", async () => {
+    const chain = gun.get("gGios");
     await new Promise(resolve => {
-      const thing1 = gun.get("thing1");
+      const thing1 = chain.get("thing1");
       thing1.put({ stuff: "b", more: "ok" });
-      gun.get("things").set(thing1, resolve);
+      chain.get("things").set(thing1, resolve);
     });
     await new Promise(resolve => {
-      const thing2 = gun.get("thing2");
+      const thing2 = chain.get("thing2");
       thing2.put({ stuff: "c", more: "ok" });
-      gun.get("things").set(thing2, resolve);
+      chain.get("things").set(thing2, resolve);
     });
 
     const { next } = graphqlGun(
-      gql`{
-        things(type: Set) {
-          stuff
+      gql`
+        {
+          gGios {
+            things(type: Set) {
+              stuff
+            }
+          }
         }
-      }`,
+      `,
       gun
     );
 
     await next();
 
-    expect(await next()).toEqual({ things: [{ stuff: "b" }, { stuff: "c" }] });
+    expect(await next()).toEqual({
+      gGios: { things: [{ stuff: "b" }, { stuff: "c" }] }
+    });
   });
 
   it("lets you subscribe to updates", async () => {
-    const thing1 = gun.get("thing1");
-    const thing2 = gun.get("thing2");
+    const chain = gun.get("gGlystu");
+    const thing1 = chain.get("thing1");
+    const thing2 = chain.get("thing2");
     thing1.put({ stuff: "b", more: "ok" });
     thing2.put({ stuff: "c", more: "ok" });
-    gun.get("things").set(thing1);
-    gun.get("things").set(thing2);
+    chain.get("things").set(thing1);
+    chain.get("things").set(thing2);
 
     let { next } = graphqlGun(
-      gql`{
-        things(type: Set) {
-          stuff @live
+      gql`
+        {
+          gGlystu {
+            things(type: Set) {
+              stuff @live
+            }
+          }
         }
-      }`,
+      `,
       gun
     );
 
-    expect(await next()).toEqual({ things: [{ stuff: "b" }, { stuff: "c" }] });
+    expect(await next()).toEqual({
+      gGlystu: { things: [{ stuff: "b" }, { stuff: "c" }] }
+    });
 
-    gun.get("thing1").put({ stuff: "changed" });
+    chain.get("thing1").put({ stuff: "changed" });
 
     expect(await next()).toEqual({
-      things: [{ stuff: "changed" }, { stuff: "c" }]
+      gGlystu: {
+        things: [{ stuff: "changed" }, { stuff: "c" }]
+      }
     });
   });
 
   it("supports mad nesting", async () => {
-    const thing1 = gun.get("thing1");
-    const thing2 = gun.get("thing2");
-    const moreThings1 = gun.get("moreThing1");
-    const moreThings2 = gun.get("moreThing2");
-    const moreThings3 = gun.get("moreThing3");
-    const moreThings4 = gun.get("moreThing4");
+    const chain = gun.get("Ggsmn");
+    const thing1 = chain.get("thing1");
+    const thing2 = chain.get("thing2");
+    const moreThings1 = chain.get("moreThing1");
+    const moreThings2 = chain.get("moreThing2");
+    const moreThings3 = chain.get("moreThing3");
+    const moreThings4 = chain.get("moreThing4");
     moreThings1.put({ otherStuff: "one fish" });
     moreThings2.put({ otherStuff: "two fish" });
     moreThings3.put({ otherStuff: "red fish" });
@@ -121,19 +145,21 @@ describe("graphqlGun", () => {
     thing1.get("moreThings").set(moreThings2);
     thing2.get("moreThings").set(moreThings3);
     thing2.get("moreThings").set(moreThings4);
-    gun.get("things").set(thing1);
-    gun.get("things").set(thing2);
+    chain.get("things").set(thing1);
+    chain.get("things").set(thing2);
 
     let { next } = graphqlGun(
-      gql`{
-        things(type: Set) {
-          stuff
-          moreThings(type: Set) {
-            otherStuff
+      gql`
+        {
+          things(type: Set) {
+            stuff
+            moreThings(type: Set) {
+              otherStuff
+            }
           }
         }
-      }`,
-      gun
+      `,
+      chain
     );
 
     expect(await next()).toEqual({
@@ -151,12 +177,13 @@ describe("graphqlGun", () => {
   });
 
   it("supports mad nesting with subscriptions", async () => {
-    const thing1 = gun.get("thing1");
-    const thing2 = gun.get("thing2");
-    const moreThings1 = gun.get("moreThing1");
-    const moreThings2 = gun.get("moreThing2");
-    const moreThings3 = gun.get("moreThing3");
-    const moreThings4 = gun.get("moreThing4");
+    const chain = gun.get("gGsmnws");
+    const thing1 = chain.get("thing1");
+    const thing2 = chain.get("thing2");
+    const moreThings1 = chain.get("moreThing1");
+    const moreThings2 = chain.get("moreThing2");
+    const moreThings3 = chain.get("moreThing3");
+    const moreThings4 = chain.get("moreThing4");
     moreThings1.put({ otherStuff: "one fish" });
     moreThings2.put({ otherStuff: "two fish" });
     moreThings3.put({ otherStuff: "red fish" });
@@ -167,19 +194,21 @@ describe("graphqlGun", () => {
     thing1.get("moreThings").set(moreThings2);
     thing2.get("moreThings").set(moreThings3);
     thing2.get("moreThings").set(moreThings4);
-    gun.get("things").set(thing1);
-    gun.get("things").set(thing2);
+    chain.get("things").set(thing1);
+    chain.get("things").set(thing2);
 
     let { next } = graphqlGun(
-      gql`{
-        things(type: Set) @live {
-          stuff
-          moreThings(type: Set) {
-            otherStuff
+      gql`
+        {
+          things(type: Set) @live {
+            stuff
+            moreThings(type: Set) {
+              otherStuff
+            }
           }
         }
-      }`,
-      gun
+      `,
+      chain
     );
 
     expect(await next()).toEqual({
@@ -195,10 +224,13 @@ describe("graphqlGun", () => {
       ]
     });
 
-    const thing3 = gun.get("thing3");
+    const thing3 = chain.get("thing3");
     thing3.put({ stuff: "d", more: "just added" });
     thing2.put({ stuff: "cc" });
-    gun.get("things").set(thing3);
+    chain.get("things").set(thing3);
+    const thing4 = chain.get("thing4");
+    thing4.put({ stuff: "e" });
+    chain.get("things").set(thing4);
 
     expect(await next()).toEqual({
       things: [
@@ -220,36 +252,34 @@ describe("graphqlGun", () => {
         }
       ]
     });
-
-    const thing4 = gun.get("thing4");
-    thing4.put({ stuff: "e" });
-    gun.get("things").set(thing4);
   });
 
   it("works with a simple case of two properties and a promise interface", async () => {
     const thing = gun.get("thing");
     const fish = thing.get("fish");
-    fish.put({"color": "red", "fins": 2});
+    fish.put({ color: "red", fins: 2 });
 
     const result = await graphqlGun(
-      gql`{
-        thing {
-          fish {
-            color
-            fins
+      gql`
+        {
+          thing {
+            fish {
+              color
+              fins
+            }
           }
         }
-      }`,
+      `,
       gun
     );
 
     expect(result).toEqual({
       thing: {
         fish: {
-          color: 'red',
+          color: "red",
           fins: 2
         }
       }
-    })
+    });
   });
 });

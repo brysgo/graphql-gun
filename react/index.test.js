@@ -18,17 +18,20 @@ const Color = props => {
 describe("react", () => {
   describe("createContainer", () => {
     it("renders the fragment in the container", async () => {
-      gun
+      const chain = gun.get("rcCrtfitc");
+      chain
         .get("color")
         .put({ hue: 255, saturation: 255, value: 255, other: "foo" });
 
       const ColorContainer = createContainer(Color, {
         fragments: {
           palette: gql`{
-            color {
-              hue
-              saturation
-              value
+            rcCrtfitc {
+              color {
+                hue
+                saturation
+                value
+              }
             }
           }`
         }
@@ -49,7 +52,8 @@ describe("react", () => {
     });
 
     it("reloads your component when new data comes", async () => {
-      gun.get("thing").put({
+      const chain = gun.get("rcCrycwndc");
+      chain.get("thing").put({
         stuff: {
           one: "hello",
           two: "world"
@@ -59,10 +63,12 @@ describe("react", () => {
       const ColorContainer = createContainer(Color, {
         fragments: {
           palette: gql`{
-            thing {
-              stuff @live {
-                one
-                two
+            rcCrycwndc {
+              thing {
+                stuff @live {
+                  one
+                  two
+                }
               }
             }
           }`
@@ -81,7 +87,7 @@ describe("react", () => {
       let tree = component.toJSON();
       expect(tree).toMatchSnapshot();
 
-      gun.get("thing").put({ stuff: { one: "new" } });
+      chain.get("thing").put({ stuff: { one: "new" } });
 
       await next();
 
