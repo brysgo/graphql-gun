@@ -1,5 +1,5 @@
 const Gun = require("gun/gun");
-const graphql = require("graphql-anywhere").default;
+const graphql = require("graphql-anywhere-async").default;
 const {
   thunkish,
   deferrableOrImmediate,
