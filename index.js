@@ -106,7 +106,7 @@ module.exports = function graphqlGun(query, gun) {
   });
   const result = thunk.toPromiseFactory()();
   result.next = thunk.toPromiseFactory();
-  result[Symbol.iterator] = function() {
+  result[Symbol.asyncIterator] = function() {
     const factory = thunk.toPromiseFactory();
     return {
       next: () =>
@@ -116,5 +116,6 @@ module.exports = function graphqlGun(query, gun) {
         }))
     };
   };
+  result[Symbol.iterator] = result[Symbol.asyncIterator]; // TODO: Depricate this usage
   return result;
 };
