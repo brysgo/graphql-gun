@@ -40,7 +40,8 @@ describe("graphqlGun", () => {
       gun
     );
 
-    expect(results).toMatchSnapshot();
+    expect(results.gGlygtcaap.bar._chain).not.toBeUndefined()
+    expect(results.gGlygtcaap.bar._chain).toEqual(gun.get("gGlygtcaap").get("bar"))
 
     await new Promise(resolve => {
       results.gGlygtcaap.bar._chain.on(
