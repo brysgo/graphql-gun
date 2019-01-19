@@ -7,7 +7,8 @@
   "author": "Bryan Goldstein <brysgo@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "jest --watch"
+    "test": "cross-env CI=1 jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "graphql-anywhere": "github:brysgo/graphql-anywhere#graphql-gun",
@@ -18,6 +19,7 @@
     "babel": "^6.23.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
+    "cross-env": "^5.2.0",
     "graphql": "^14.0.0",
     "graphql-tag": "^2.9.2",
     "jest": "^23.2.0",

@@ -7,14 +7,3 @@ Object {
   },
 }
 `;
-
-exports[`graphqlGun lets you grab the chain at any point 1`] = `
-Object {
-  "gGlygtcaap": Object {
-    "bar": Object {
-      "_chain": undefined,
-      "hello": undefined,
-    },
-  },
-}
-`;
