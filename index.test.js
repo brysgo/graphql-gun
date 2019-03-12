@@ -284,3 +284,55 @@ describe("graphqlGun", () => {
     });
   });
 });
+
+test("siddhudhangar's problem", async () => {
+  const fish = gun.get("fish");
+  fish.put({ red: { name: "Frank" } });
+  fish.put({ blue: { name: "John" } });
+  const friends = fish.get("friends");
+  const dori = fish.get("dori");
+  const martin = fish.get("martin");
+  const nemo = fish.get("nemo");
+  dori.put({ name: "Dori", favoriteColor: "blue" });
+  martin.put({ name: "Martin", favoriteColor: "orange" });
+  nemo.put({ name: "Nemo", favoriteColor: "gold" });
+  friends.set(dori);
+  friends.set(martin);
+  friends.set(nemo);
+
+  const result = await graphqlGun(
+    gql`
+      {
+        fish {
+          red {
+            name
+          }
+
+          blue {
+            _chain
+          }
+
+          friends(type: Set) {
+            name
+            favoriteColor
+          }
+        }
+      }
+    `,
+    gun
+  );
+
+  expect(result).toEqual({
+    fish: {
+      blue: {
+        _chain: fish.get("blue")
+      },
+      friends: [
+        { favoriteColor: "blue", name: "Dori" },
+        { favoriteColor: "orange", name: "Martin" },
+        { favoriteColor: "gold", name: "Nemo" }
+      ],
+      red: { name: "Frank" }
+    }
+  });
+});
