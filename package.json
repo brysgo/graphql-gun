@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "graphql-anywhere": "github:brysgo/graphql-anywhere#graphql-gun",
-    "gun": "^0.2019.323",
+    "gun": "^0.2019.627",
     "try-get": "^1.0.0"
   },
   "devDependencies": {
