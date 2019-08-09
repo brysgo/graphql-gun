@@ -25,6 +25,6 @@
     "jest": "^23.2.0",
     "prettier": "^1.13.7",
     "react": "^16.9.0",
-    "react-test-renderer": "^16.4.1"
+    "react-test-renderer": "^16.9.0"
   }
 }
