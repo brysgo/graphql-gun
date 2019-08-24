@@ -1,4 +1,4 @@
-name: Test and Publish
+name: Test
 
 on:
   push:
@@ -18,21 +18,3 @@ jobs:
           node-version: 12
       - run: yarn
       - run: yarn test
-
-  publish:
-    needs: build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v1
-      - uses: actions/setup-node@v1
-        env:
-          NPM_TOKEN: ${{secrets.npm_token}}
-          GH_TOKEN: ${{secrets.GH_TOKEN}}
-        with:
-          node-version: 12
-          registry-url: https://registry.npmjs.org/
-      - run: |
-          : ${NPM_TOKEN?"Need to set NPM_TOKEN"}
-          : ${GH_TOKEN?"Need to set GH_TOKEN"}
-          npm install @semantic-release/github @semantic-release/npm
-          npx semantic-release
