@@ -1355,8 +1355,9 @@ graceful-fs@^4.1.11, graceful-fs@^4.1.2:
   resolved "https://codeload.github.com/brysgo/graphql-anywhere/tar.gz/6fbc9bca45ee546dff44e53464bf173a3bf6003b"
 
 graphql-tag@^2.9.2:
-  version "2.9.2"
-  resolved "https://registry.yarnpkg.com/graphql-tag/-/graphql-tag-2.9.2.tgz#2f60a5a981375f430bf1e6e95992427dc18af686"
+  version "2.10.4"
+  resolved "https://registry.yarnpkg.com/graphql-tag/-/graphql-tag-2.10.4.tgz#2f301a98219be8b178a6453bb7e33b79b66d8f83"
+  integrity sha512-O7vG5BT3w6Sotc26ybcvLKNTdfr4GfsIVMD+LdYqXCeJIYPRyp8BIsDOUtxw7S1PYvRw5vH3278J2EDezR6mfA==
 
 graphql@^14.0.0:
   version "14.1.1"
