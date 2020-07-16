@@ -7,9 +7,8 @@
  ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝     ╚═╝  ╚═╝ ╚══▀▀═╝ ╚══════╝       ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝
 ```
 
-[![CircleCI](https://circleci.com/gh/brysgo/graphql-gun/tree/master.svg?style=shield)](https://circleci.com/gh/brysgo/graphql-gun/tree/master)
+![Test](https://github.com/brysgo/graphql-gun/workflows/Test/badge.svg)
 [![daviddm](https://david-dm.org/brysgo/graphql-gun/status.svg)](https://david-dm.org/brysgo/graphql-gun)
-[![Greenkeeper badge](https://badges.greenkeeper.io/brysgo/graphql-gun.svg)](https://greenkeeper.io/)
 
 Augmented query interface for the graph universal database http://gun.js.org/
 
