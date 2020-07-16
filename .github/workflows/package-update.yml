@@ -1,0 +1,10 @@
+- name: package-update
+  uses: taichi/actions-package-update@master
+  env:
+    AUTHOR_EMAIL: brysgo@gmail.com
+    AUTHOR_NAME: Bryan Goldstein
+    EXECUTE: "true"
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    UPDATE_COMMAND: yarn
+  with:
+    args: upgrade --latest
