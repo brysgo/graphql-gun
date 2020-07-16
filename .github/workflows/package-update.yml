@@ -1,10 +1,21 @@
-- name: package-update
-  uses: taichi/actions-package-update@master
-  env:
-    AUTHOR_EMAIL: brysgo@gmail.com
-    AUTHOR_NAME: Bryan Goldstein
-    EXECUTE: "true"
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    UPDATE_COMMAND: yarn
-  with:
-    args: upgrade --latest
+on:
+  schedule:
+  - cron: 0 0 * * 3
+name: Update
+jobs:
+  package-update:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: set remote url
+      run: git remote set-url --push origin https://$GITHUB_ACTOR:${{ secrets.GITHUB_TOKEN }}@github.com/$GITHUB_REPOSITORY
+    - name: package-update
+      uses: taichi/actions-package-update@master
+      env:
+        AUTHOR_EMAIL: brysgo@gmail.com
+        AUTHOR_NAME: Bryan Goldstein
+        EXECUTE: "true"
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        UPDATE_COMMAND: yarn
+      with:
+        args: upgrade --latest
