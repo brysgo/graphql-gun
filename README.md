@@ -8,7 +8,6 @@
 ```
 
 ![Test](https://github.com/brysgo/graphql-gun/workflows/Test/badge.svg)
-[![daviddm](https://david-dm.org/brysgo/graphql-gun/status.svg)](https://david-dm.org/brysgo/graphql-gun)
 
 Augmented query interface for the graph universal database http://gun.js.org/
 
