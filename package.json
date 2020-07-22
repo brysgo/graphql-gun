@@ -12,19 +12,19 @@
   },
   "dependencies": {
     "graphql-anywhere": "github:brysgo/graphql-anywhere#graphql-gun",
-    "gun": "^0.2020.514",
+    "gun": "^0.2020.520",
     "try-get": "^1.0.0"
   },
   "devDependencies": {
     "babel": "^6.23.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.7.0",
-    "cross-env": "^6.0.0",
-    "graphql": "^14.0.0",
-    "graphql-tag": "^2.9.2",
-    "jest": "^23.2.0",
-    "prettier": "^1.13.7",
-    "react": "^16.4.1",
-    "react-test-renderer": "^16.4.1"
+    "cross-env": "^7.0.2",
+    "graphql": "^15.3.0",
+    "graphql-tag": "^2.10.4",
+    "jest": "^26.1.0",
+    "prettier": "^2.0.5",
+    "react": "^16.13.1",
+    "react-test-renderer": "^16.13.1"
   }
 }
