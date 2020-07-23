@@ -1,6 +1,6 @@
 {
   "name": "graphql-gun",
-  "version": "0.0.0-semantic-release",
+  "version": "1.0.2",
   "description": "A graphql API for the gun p2p graph database",
   "main": "index.js",
   "repository": "",
@@ -17,8 +17,8 @@
     "try-get": "^1.0.0"
   },
   "devDependencies": {
-    "@babel/plugin-transform-runtime": "^7.10.5",
     "@babel/core": "^7.10.5",
+    "@babel/plugin-transform-runtime": "^7.10.5",
     "@babel/preset-env": "^7.10.4",
     "cross-env": "^7.0.2",
     "graphql": "^15.3.0",
